@@ -1,6 +1,4 @@
 import torch
-import numpy as np
-from torch._C import dtype
 import math
 
 def kronecker(A, B):

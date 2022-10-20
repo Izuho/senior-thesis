@@ -3,7 +3,7 @@ import torch.distributions.bernoulli as bernoulli
 from torch.autograd import Function
 import math
 
-from .basis_gate import RY, Z, kronecker, CNOT, Rot, I, State00
+from .basis_gate import kronecker, CNOT, Rot, I
 
 def CNOT_layer(n_qubits=2):
     gate1 = CNOT(wires=[0, 1])
