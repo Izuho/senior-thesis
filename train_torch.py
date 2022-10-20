@@ -79,7 +79,7 @@ def train(model, feat, label, feat_test=None, label_test=None, batch_size=4, loc
 
         scheduler.step()
         loss_list.append(loss.item())
-
+       
     log_dir = 'logs/qnn/'
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
