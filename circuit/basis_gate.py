@@ -46,6 +46,11 @@ def RZ(phi):
 def Rot(alpha, beta, theta):
     return torch.mm(torch.mm(RZ(alpha), RY(beta)), RZ(theta))
 
+def Frax(n):
+    axis = n / torch.norm(n)
+    gate = torch.zeros((2, 2), dtype=torch.cfloat)
+    gate[0, 0], gate[0, 1], gate[1, 0], gate[1, 1] = -axis[2]*1j, -axis[0]*1j-axis[1], -axis[0]*1j+axis[1], axis[2]*1j
+    return gate.to(n.device)
 
 def State00():
     state = torch.zeros((2, 2), dtype=torch.cfloat)
@@ -58,34 +63,32 @@ def State11():
     return state
 
 def CNOT(wires=[0, 1]):
-    # 0 : Cnotrol qubit, 1 : Flipped qubit
+    # First qubit : Cnntrol, Second qubit : Flipped
     if wires[0] < wires[1]:
-        first, second = State00(), State11()
-        for i in range(wires[0], wires[1]):
-            if i == wires[1] - 1:
-                first = kronecker(first, torch.eye(2))
-                second = kronecker(second, X)
-            else:
-                first = kronecker(first, torch.eye(2))
-                second = kronecker(second, torch.eye(2))
-        return first + second
+        return torch.tensor([
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,0,1],
+            [0,0,1,0]], dtype=torch.cfloat)
     else:
-        first, second = torch.eye(2), X
-        for i in range(wires[1], wires[0]):
-            if i == wires[0] - 1:
-                first = kronecker(first, State00())
-                second = kronecker(second, State11())
-            else:
-                first = kronecker(first, torch.eye(2))
-                second = kronecker(second, torch.eye(2))
-        return first + second
-
+        return torch.tensor([
+            [1,0,0,0],
+            [0,0,0,1],
+            [0,0,1,0],
+            [0,1,0,0]], dtype=torch.cfloat)
+    
 RGate = {
     'RX': RX,
     'RY': RY,
     'RZ': RZ
 }
 
+CZ = torch.tensor([
+    [1,0,0,0],
+    [0,1,0,0], 
+    [0,0,1,0], 
+    [0,0,0,-1]], dtype=torch.cfloat)
+    
 def CRR(phi, wires=[0, 1], name='RX'):
     if wires[0] < wires[1]:
         first, second = State00(), State11()
@@ -107,14 +110,3 @@ def CRR(phi, wires=[0, 1], name='RX'):
                 first = kronecker(first, torch.eye(2))
                 second = kronecker(second, torch.eye(2))
         return first + second
-
-if __name__=='__main__':
-    state = torch.zeros((2**2, 1), dtype=torch.cfloat)
-    state[3] = 1
-    H = math.sqrt(2)/2*torch.tensor([
-        [1, 1],
-        [1, -1]
-    ], dtype=torch.cfloat)
-    gate = CNOT(wires=[1,0])
-    gate = kronecker(H, H) @ gate @ kronecker(H, H)
-    print(gate@state)
