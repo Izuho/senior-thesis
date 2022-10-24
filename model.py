@@ -25,17 +25,17 @@ class FraxClassify():
             for b in range(self.n_qubits):
                 R = torch.zeros(3,3)
                 for c in range(train_feat.shape[0]):
-                    
+                    y = x[c]
                     for d in range(a):
-                        x[c] = Frax_ansatz(self.n_qubits, params[d]) @ x[c]
-                    rx = replace_Frax_ansatz(self.n_qubits, b, 'X', params[a]) @ x[c]
-                    ry = replace_Frax_ansatz(self.n_qubits, b, 'Y', params[a]) @ x[c]
-                    rz = replace_Frax_ansatz(self.n_qubits, b, 'Z', params[a]) @ x[c]
-                    rxy = replace_Frax_ansatz(self.n_qubits, b, 'XY', params[a]) @ x[c]
-                    rxz = replace_Frax_ansatz(self.n_qubits, b, 'XZ', params[a]) @ x[c]
-                    ryz = replace_Frax_ansatz(self.n_qubits, b, 'YZ', params[a]) @ x[c]
+                        y = Frax_ansatz(self.n_qubits, params[d]) @ y
+                    rx = replace_Frax_ansatz(self.n_qubits, b, 'X', params[a]) @ y
+                    ry = replace_Frax_ansatz(self.n_qubits, b, 'Y', params[a]) @ y
+                    rz = replace_Frax_ansatz(self.n_qubits, b, 'Z', params[a]) @ y
+                    rxy = replace_Frax_ansatz(self.n_qubits, b, 'XY', params[a]) @ y
+                    rxz = replace_Frax_ansatz(self.n_qubits, b, 'XZ', params[a]) @ y
+                    ryz = replace_Frax_ansatz(self.n_qubits, b, 'YZ', params[a]) @ y
                     for d in range(a+1, self.layer_size):
-                        rx = Frax_ansatz(self.n_qubits, params[d]) @ rx        
+                        rx = Frax_ansatz(self.n_qubits, params[d]) @ rx
                         ry = Frax_ansatz(self.n_qubits, params[d]) @ ry       
                         rz = Frax_ansatz(self.n_qubits, params[d]) @ rz
                         rxy = Frax_ansatz(self.n_qubits, params[d]) @ rxy
@@ -61,6 +61,8 @@ class FraxClassify():
                 R[2,1] = R[1,2]
                 group = dist.new_group(range(self.world_size))
                 dist.all_reduce(R, op=dist.ReduceOp.SUM, group=group)
+                if (dist.get_rank(group) == 0):
+                    print(R)
                 eigenvalues, eigenvectors = torch.linalg.eig(R)
                 self.params[a, b] = eigenvectors[torch.argmin(eigenvalues.real)]
                 self.params[a, b] /= torch.norm(self.params[a, b])
