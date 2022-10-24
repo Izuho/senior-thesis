@@ -1,7 +1,7 @@
 # senior-thesis
-> python train_torch.py --K 1 --W 8 --port 1001 --p 0 --M 100 --seed 0
+> python train_torch.py --W 4 --L 4 --N 100 --M 100
 
-- K : Iteration of local nodes
-- W : Nodes
-- p : Error rate
-- M : Measurement
+- W : Num of nodes
+- L : Num of layers of ansatz
+- N : Num of updates
+- M : Num of measurement
