@@ -1,5 +1,5 @@
 # senior-thesis
-> python Fraxis_classify.py --W 4 --L 4 --N 100 --M 100
+> python frax_classify.py --W 4 --L 4 --N 100 --M 100
 
 - W : Num of nodes
 - L : Num of layers of ansatz
