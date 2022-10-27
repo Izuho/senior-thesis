@@ -5,7 +5,7 @@ import torch.distributed as dist
 import math
 
 def lastbit_Z(state):
-    return torch.sum(state[0:len(state):2].abs()**2)-torch.sum(state[1:len(state):2].abs()**2)
+    return 2 * (torch.norm(state[0:len(state):2])**2) - 1
 
 class FraxClassify():
     def __init__(self, n_qubits, layer_size, measure_iter, world_size):
@@ -50,10 +50,10 @@ class FraxClassify():
                     ryz = lastbit_Z(ryz)
                         
                     R[0,0] += train_label[c] * 2 * rx
-                    R[0,1] += train_label[c] * (2 * rxy-rx-ry)
-                    R[0,2] += train_label[c] * (2 * rxz-rx-rz)
+                    R[0,1] += train_label[c] * (2 * rxy - rx - ry)
+                    R[0,2] += train_label[c] * (2 * rxz - rx - rz)
                     R[1,1] += train_label[c] * 2 * ry
-                    R[1,2] += train_label[c] * (2 * ryz-ry-rz)
+                    R[1,2] += train_label[c] * (2 * ryz - ry - rz)
                     R[2,1] += train_label[c] * 2 * rz
                     
                 R[1,0] = R[0,1]
@@ -61,15 +61,13 @@ class FraxClassify():
                 R[2,1] = R[1,2]
                 group = dist.new_group(range(self.world_size))
                 dist.all_reduce(R, op=dist.ReduceOp.SUM, group=group)
-                if (dist.get_rank(group) == 0):
-                    print(R)
-                eigenvalues, eigenvectors = torch.linalg.eig(R)
-                self.params[a, b] = eigenvectors[torch.argmin(eigenvalues.real)]
-                self.params[a, b] /= torch.norm(self.params[a, b])
+                eigenvalues, eigenvectors = torch.linalg.eigh(R)
+                self.params[a, b] = eigenvectors[:, torch.argmax(eigenvalues.real)]
                 
     def eval(self, train, test):
-        test_score = 0
-        train_score = 0
+        group = dist.new_group(range(self.world_size))
+        test_acc = torch.zeros(1)
+        train_acc = torch.zeros(1)
         train_feat, train_label = train
         test_feat, test_label = test
         train_size = train_label.shape[0]
@@ -78,20 +76,25 @@ class FraxClassify():
             x = amplitude_embedding(test_feat[a], self.n_qubits)
             for b in range(self.layer_size):
                 x = Frax_ansatz(self.n_qubits, self.params[b]) @ x
-            test_score += test_label[a] * lastbit_Z(x)
-        group = dist.new_group(range(self.world_size))
-        dist.all_reduce(test_score, op=dist.ReduceOp.SUM, group=group)
-        self.test_acc.append(test_score)
+            if test_label[a] * lastbit_Z(x) > 0:
+                test_acc += 1
+        dist.all_reduce(test_acc, op=dist.ReduceOp.SUM, group=group)
+        self.test_acc.append(test_acc)
         
         for a in range(train_size):
             x = amplitude_embedding(train_feat[a], self.n_qubits)
             for b in range(self.layer_size):
                 x = Frax_ansatz(self.n_qubits, self.params[b]) @ x
-            train_score += train_label[a] * lastbit_Z(x)
-        group = dist.new_group(range(self.world_size))
-        dist.all_reduce(train_score, op=dist.ReduceOp.SUM, group=group)
-        self.train_acc.append(train_score)
+            if train_label[a] * lastbit_Z(x) > 0:
+                train_acc += 1
+        dist.all_reduce(train_acc, op=dist.ReduceOp.SUM, group=group)
+        self.train_acc.append(train_acc)
         
-    def get_accuracy(self):
+    def get_accuracy(self, cont=False):
         if dist.get_rank() == 0:
-            print(self.train_acc, self.test_acc)
+            if cont:
+                print('Train score : ', self.train_acc) 
+                print('Test score : ', self.test_acc)
+            else:
+                print('Train score : ', self.train_acc[-1]) 
+                print('Test score : ', self.test_acc[-1])

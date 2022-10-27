@@ -41,4 +41,4 @@ def parallel_train(rank, world_size, layer_size, update_iter, measure_iter):
     for i in range(update_iter):
         model.fit(train=(train_feat, train_label))
         model.eval(train=(train_feat, train_label), test=(test_feat, test_label))
-    model.get_accuracy()
+        model.get_accuracy(cont=False)
