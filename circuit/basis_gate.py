@@ -47,11 +47,9 @@ def Rot(alpha, beta, theta):
     return torch.mm(torch.mm(RZ(alpha), RY(beta)), RZ(theta))
 
 def Frax(n):
-    axis = n / torch.norm(n)
-    gate = torch.zeros((2, 2), dtype=torch.cfloat)
-    gate[0, 0], gate[0, 1], gate[1, 0], gate[1, 1] = -axis[2]*1j, -axis[0]*1j-axis[1], -axis[0]*1j+axis[1], axis[2]*1j
-    return gate.to(n.device)
-
+    n = n / torch.norm(n)
+    return n[0] * X + n[1] * Y + n[2] * Z
+    
 def State00():
     state = torch.zeros((2, 2), dtype=torch.cfloat)
     state[0, 0] = 1
@@ -88,7 +86,7 @@ CZ = torch.tensor([
     [0,1,0,0], 
     [0,0,1,0], 
     [0,0,0,-1]], dtype=torch.cfloat)
-    
+
 def CRR(phi, wires=[0, 1], name='RX'):
     if wires[0] < wires[1]:
         first, second = State00(), State11()
