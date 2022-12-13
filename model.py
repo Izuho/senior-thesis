@@ -98,12 +98,14 @@ class FraxClassify():
                 acc_and_score = self.eval(X,y,sampler)
                 dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
                 
-                if abs(np.max(eigenvalues)-acc_and_score[1])>1e-4:
+                if abs(np.max(eigenvalues)-acc_and_score[1])>1e-2:
                     self.params[a,b,:] *= -1
-                    acc_and_score = self.eval(X,y,sampler) 
+                    acc_and_score = self.eval(X,y,sampler)
+                    dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
                 if dist.get_rank(group) == 0: print('ACC_train: ',acc_and_score[0],'\nSCORE_train: ',acc_and_score[1])
                 
                 acc_and_score = self.eval(X2,y2,sampler)
+                dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
                 
                 if dist.get_rank(group) == 0: print('ACC_test: ',acc_and_score[0],'\nSCORE_test: ',acc_and_score[1])
         if dist.get_rank(group) == 0: print(self.params)
