@@ -91,6 +91,7 @@ class FraxClassify():
                 group = dist.new_group(range(self.world_size))
                 dist.all_reduce(R, op=dist.ReduceOp.SUM, group=group)
                 R = R.to('cpu').detach().numpy().copy()
+                R = np.where(R*R<1e-8, 0, R)
                 eigenvalues, eigenvectors = np.linalg.eigh(R)
                 self.params[a, b] = eigenvectors[0:2, np.argmax(eigenvalues.real)]
                 if dist.get_rank(group) == 0: print(np.max(eigenvalues))
