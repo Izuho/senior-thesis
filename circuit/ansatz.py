@@ -15,12 +15,11 @@ def fraxis_gate(nx, ny, nz=None):
     return circ
 
 def _validate(nx, ny, nz=None):
-    assert nx**2+ny**2<=1, print(nx,ny)
     if nz == None:
         nx = nx.real
         ny = ny.real
         nz2 = 1-nx**2.-ny**2.
-        nz = np.sqrt(nz2).real if nz2>0 else 0
+        nz = np.sqrt(nz2).real if nz2 > 0 else 0
     return nx, ny, nz
 
 def FraxisFeatureMap(num_qubits, data):
