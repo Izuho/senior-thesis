@@ -98,7 +98,7 @@ class FraxClassify():
                 acc_and_score = self.eval(X,y,sampler)
                 dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
                 
-                if abs(np.max(eigenvalues)-acc_and_score[1])>1e-2:
+                if abs(np.max(eigenvalues)-acc_and_score[1])>1e-4:
                     self.params[a,b,:] *= -1
                     acc_and_score = self.eval(X,y,sampler)
                     dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
