@@ -40,5 +40,5 @@ def parallel_train(rank, n_qubits, layer_size, world_size, num_train, num_test, 
     for i in range(update_iter):
         st = time.time()
         model.fit_and_eval(train_feat,train_label,test_feat,test_label)
-        print(time.time()-st)
-        print('_______________NEW________________',i)
+        if rank == 0: print(time.time()-st)
+        if rank == 0: print('_______________NEW________________',i)
