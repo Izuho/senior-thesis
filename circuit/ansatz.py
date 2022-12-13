@@ -1,50 +1,96 @@
-from .basis_gate import Frax, CZ, kronecker, I, X, Y, Z
-import torch
-from math import sqrt
+from qiskit.circuit import QuantumCircuit
+import numpy as np
 
-def CZ_layer(n_qubits):
-    if n_qubits == 2:
-        return CZ
-    gate1 = CZ
-    for i in range(2, n_qubits, 2):
-        if i+1 < n_qubits:
-            gate1 = kronecker(gate1, CZ)
-        else:
-            gate1 = kronecker(gate1, I)
-    gate2 = CZ
-    gate2 = kronecker(I, gate2)
-    for i in range(3, n_qubits, 2):
-        if i+1 < n_qubits:
-            gate2 = kronecker(gate2, CZ)
-        else:
-            gate2 = kronecker(gate2, I)
-    return torch.mm(gate2, gate1)
+def fraxis_gate(nx, ny, nz=None):
+    nx, ny, nz = _validate(nx, ny, nz)
+    theta = 2*(np.arccos(nz))
+    phi = None
+    if nx==0:
+      phi=np.pi/2
+    else:
+      phi=np.arctan2(ny, nx)
+    circ = QuantumCircuit(1)
+    
+    circ.u(theta,phi,np.pi-phi,[0])
+    return circ
 
-def Frax_ansatz(n_qubits, param):
-    # param : torch.Tensor of (n_qubits, 3)
-    x = 1
-    for i in range(n_qubits):
-        x = kronecker(x, Frax(param[i]))
-    return torch.mm(CZ_layer(n_qubits), x)
+def _validate(nx, ny, nz=None):
+    assert nx**2+ny**2<=1, print(nx,ny)
+    if nz == None:
+        nx = nx.real
+        ny = ny.real
+        nz2 = 1-nx**2.-ny**2.
+        nz = np.sqrt(nz2).real if nz2>0 else 0
+    return nx, ny, nz
 
-def replace_Frax_ansatz(n_qubits, measured_qubit, observable, param):
-    x = 1
-    for i in range(measured_qubit):
-        x = kronecker(x, Frax(param[i]))
-        
-    if observable == 'X':
-        x = kronecker(x, X)
-    elif observable == 'Y':
-        x = kronecker(x, Y)
-    elif observable == 'Z':
-        x = kronecker(x, Z)
-    elif observable == 'XY':
-        x = kronecker(x, (X+Y)/sqrt(2))
-    elif observable == 'XZ':
-        x = kronecker(x, (X+Z)/sqrt(2))
-    elif observable == 'YZ':
-        x = kronecker(x, (Y+Z)/sqrt(2))
+def FraxisFeatureMap(num_qubits, data):
+    circ = QuantumCircuit(num_qubits)
+    for i in range(
+        data.shape[0]//2
+    ):
+        circ.compose(fraxis_gate(data[2*i], data[2*i+1]), qubits=[i%num_qubits], inplace=True)
+        if (i+1)%num_qubits == 0:
+            for j in range(0,num_qubits,2):
+                if j+1 < num_qubits:
+                    circ.cz(j,j+1)
+            for j in range(1,num_qubits,2):
+                if j+1 < num_qubits:
+                    circ.cz(j,j+1)        
+    return circ
 
-    for i in range(measured_qubit+1, n_qubits):
-        x = kronecker(x, Frax(param[i]))
-    return torch.mm(CZ_layer(n_qubits), x)
+def FraxisAnsatz(num_qubits, params):
+    circ = QuantumCircuit(num_qubits)
+    for i in range(num_qubits):
+        circ.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+    for j in range(0,num_qubits,2):
+        if j+1 < num_qubits:
+            circ.cz(j,j+1)
+    for j in range(1,num_qubits,2):
+        if j+1 < num_qubits:
+            circ.cz(j,j+1)        
+    return circ
+
+def replace_FraxisAnsatz(num_qubits, target, params):
+    circX = QuantumCircuit(num_qubits)
+    circY = QuantumCircuit(num_qubits)
+    circZ = QuantumCircuit(num_qubits)
+    circXY = QuantumCircuit(num_qubits)
+    circXZ = QuantumCircuit(num_qubits)
+    circYZ = QuantumCircuit(num_qubits)
+    for i in range(target):
+        circX.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circY.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circZ.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circXY.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circXZ.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circYZ.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+    circX.x(target)
+    circY.y(target)
+    circZ.z(target)
+    circXY.u(np.pi, np.pi*0.25, np.pi*0.75, target)
+    circXZ.u(np.pi*0.5, 0, np.pi, target)
+    circYZ.u(np.pi*0.5, np.pi*0.5, np.pi*0.5, target)
+    for i in range(target+1, num_qubits, 1):
+        circX.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circY.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circZ.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circXY.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circXZ.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+        circYZ.compose(fraxis_gate(params[i,0], params[i,1]), qubits=[i], inplace=True)
+    for j in range(0,num_qubits,2):
+        if j+1 < num_qubits:
+            circX.cz(j,j+1)
+            circY.cz(j,j+1)
+            circZ.cz(j,j+1)
+            circXY.cz(j,j+1)
+            circXZ.cz(j,j+1)
+            circYZ.cz(j,j+1)
+    for j in range(1,num_qubits,2):
+        if j+1 < num_qubits:
+            circX.cz(j,j+1)
+            circY.cz(j,j+1)
+            circZ.cz(j,j+1)
+            circXY.cz(j,j+1)
+            circXZ.cz(j,j+1)
+            circYZ.cz(j,j+1)
+    return [circX, circY, circZ, circXY, circXZ, circYZ]
