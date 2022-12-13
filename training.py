@@ -1,13 +1,13 @@
 import numpy as np
 from model import FraxClassify
-import torch
+import time
 
-def data_loader():
+def data_loader(num_train, num_test):
     try:
-        test_label = torch.from_numpy(np.load('data/mnist_test_Label.npy'))
-        train_label = torch.from_numpy(np.load('data/mnist_train_Label.npy'))
-        test_feat = torch.from_numpy(np.load('data/mnist_test_feat.npy'))
-        train_feat = torch.from_numpy(np.load('data/mnist_train_feat.npy'))
+        test_label = np.load('data/mnist_test_Label.npy')[0:num_test]
+        train_label = np.load('data/mnist_train_Label.npy')[0:num_train]
+        test_feat = np.load('data/mnist_test_feat.npy')[0:num_test]
+        train_feat = np.load('data/mnist_train_feat.npy')[0:num_train]
         return test_label, train_label, test_feat, train_feat
     except Exception as e:
         print(e)
@@ -32,13 +32,13 @@ def cut_data(train_label, train_feat, test_label, test_feat, rank, world_size):
     
     return train_label[start1:end1], train_feat[start1:end1], test_label[start2:end2], test_feat[start2:end2]
 
-def parallel_train(rank, world_size, layer_size, update_iter, measure_iter):
+def parallel_train(rank, n_qubits, layer_size, world_size, num_train, num_test, update_iter):
     print('I am ', rank)
-    n_qubits = 6
-    test_label, train_label, test_feat, train_feat = data_loader()
+    test_label, train_label, test_feat, train_feat = data_loader(num_train, num_test)
     train_label, train_feat, test_label, test_feat = cut_data(train_label, train_feat, test_label, test_feat, rank, world_size)
-    model = FraxClassify(n_qubits, layer_size, measure_iter, world_size)
+    model = FraxClassify(n_qubits, layer_size, world_size)
     for i in range(update_iter):
-        model.fit(train=(train_feat, train_label))
-        model.eval(train=(train_feat, train_label), test=(test_feat, test_label))
-        model.get_accuracy(cont=False)
+        st = time.time()
+        model.fit_and_eval(train_feat,train_label,test_feat,test_label)
+        print(time.time()-st)
+        print('_______________NEW________________',i)
