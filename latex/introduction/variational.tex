@@ -1,0 +1,22 @@
+\section{Variational method}
+\par The quantum circuit used in variational method is like Figure \ref{fig:variational}.
+
+\begin{figure}[H]
+    \Qcircuit @C=3.2em @R=1em {
+        &&&\lstick{\ket{0}} & \multigate{4}{S(x)} & \multigate{4}{W(\theta)} & \meter  \\
+        &&&\lstick{\ket{0}} & \ghost{S(x)} & \ghost{W(\theta)} & \meter \\
+        &&&\lstick{\ket{0}} & \ghost{S(x)} & \ghost{W(\theta)} & \meter \\
+        &&&\vdots & & &\vdots \\
+        &&&\lstick{\ket{0}} & \ghost{S(x)} & \ghost{W(\theta)} & \meter
+    }
+    \caption{The circuit used for variational method.\label{fig:variational}}
+\end{figure}
+
+$S(\bm{x})$ is the unitary operation embedded with the data $\bm{x}$. This is the encoding operation and can be defined freely. $W(\bm{\theta})$ is the unitary operation embedded with some parameters and is the most important part of the variational method. $W(\bm{\theta})$ can be defined freely, and a pattern of $W(\bm{\theta})$ that determines which gates are applied to which qubits is called as ansatz. Measurement is done by the measurement operator $\mathcal{M}$.
+
+\par This quantum circuit can be interpreted in two models: probabilistic models and  deterministic models. In the probabilistic models, measurement operator is selected so that the operator's eigenvalues correspond to the given label $y$, namely $\mathcal{M}=\sum y|y\rangle\langle y|$ where $\{|y\rangle\}$ is the orthonormal basis. Since $\sum|y\rangle\langle y|=I$ satisfies, 
+$\tr\left(\mathcal{M}W(\theta)S(x)|00\cdots\rangle\langle00\cdots|S(x)^\dagger W(\theta)^\dagger\right)$ is equal to $1$ and the obtained value $\tr\left(|y\rangle\langle y|W(\theta)S(x)|00\cdots\rangle\langle00\cdots|S(x)^\dagger W(\theta)^\dagger\right)=|\langle y|W(\theta)S(x)|00\cdots\rangle|^2$ can be taken as the probability of the label of $x$ being $y$. Deterministic models are easier than the probabilistic models. We  construct the measurement operator $\mathcal{M}$ so that the measured value can directly be the output of the model.
+
+\par In variational method, quantum circuits with parameters are used to produce models, and classical computers are used to adjust these parameters so that the models can represent the tendency of the given data. 
+
+\par As can be seen in Figure \ref{fig:variational}, measurement of the quantum circuit on the order of $O(N)$ is needed with respect to the number of data $N$, which is more efficient than kernel method which needs $O(N^2)$ times measurement. Optimizers, which are algorithms of parameters adjustment, can be mainly divided into two directions: gradient-based algorithms and gradient-free algorithms.
