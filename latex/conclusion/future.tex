@@ -1,0 +1,16 @@
+\section{Future works}
+While we reviewed our contributions above, many future works stem from this research. The issues obtained through these experiments are described below.
+
+\subsection{Implementation on the real devices}
+In our research, we did experiments of numerical simulation, but we did not do the experiments on the real devices. This is because the current Qiskit library does not have an API that realizes communication between multiple quantum computers and classical computers. One promising way to do experiments on the real device is to build multiple circuits on a single quantum computer. In our experiments of numerical simulation, we used qubits of the number from two to eight. The latest quantum computers have more than 100 qubits, so we can construct several quantum circuits at once on the single quantum computers. We would like to investigate how the effects of noise in quantum computers affect accuracy by experiments on the real device.
+
+\subsection{Designing the cost function}
+
+We designed the cost function like below:
+$$-\sum_{i=1}^N y_{i}\tr{\left(Z_1 SR_d(\bm{n})Q\rho_{i} Q^\dagger R_d(\bm{n})^{\dagger}S^\dagger\right)}$$
+Although the form of this cost function is very compatible with our optimization method, minimization of this function does not always improve the accuracy of the prediction, and sometimes even make it worse. One direction would be to devise a cost function that directly leads to improved accuracy while keeping the cost to optimize parameters low. This may lead to faster convergence.
+
+\subsection{Circuits construction}
+
+Coordinate algorithm iterates updating of the parameters one by one, therefore the order of the updating and the initialization of the parameters have a great influence on performance.
+In our experiments of numerical simulation, we initialized the all fraxis gates' parameters to $bm{n}=(0,0,1)^\top$, and the order of updating of the parameters is cyclically fixed. Finding the new method to initialize the parameters and determine the order of updating may result in better performance. Furthermore, only one type of the ansatz (the pattern of gate replacement), one way of the encoding is tested in our research. There are many possible variations of quantum circuits construction along the lines of our research.

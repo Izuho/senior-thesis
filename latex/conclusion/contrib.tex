@@ -1,0 +1,11 @@
+\section{Contributions}
+\par Let us review the contributions of our research. We proposed a new distributed quantum machine learning algorithm with gradient-free optimizer for binary classification that can be parallelized using multiple quantum devices. This algorithm is a type of coordinate descent algorithm, which iterates the updates of the parameters one by one (not all at once). This algorithm is novel in two respects. First, up until now algorithms using gradient-free optimizers are mainly focused on optimization problems or chemistry, not on machine learning. This research is aimed at machine learning, especially at classification. Second, distributed algorithms were based on gradient-based optimizers, not gradient-free ones. Gradient-free optimizers converge faster without getting into the barren plateaus problem which means that the landscape of the cost function is flat and parameters do not converge, and this is our direction. 
+
+
+\par We also conducted the experiments of numerical simulation of our proposed algorithm by using MNIST and Fashion-MNIST images with labeled 0 or 1. Through this experiment, it was shown that our newly proposed distributed coordinate descent algorithm for quantum machine learning performs high accuracy for image classification tasks. This means that we successfully fit the classification problem into the framework of distributed coordinate descent algorithm. We also experimentally showed that distribution achieves the speed up of training in linear-scale, with little change in behavior with non-distributed one.
+
+%%%%%%%%%%%%%%%%%%
+%%% conclusion %%%
+%%%%%%%%%%%%%%%%%%
+
+\par In conclusion, this research proposes a new distributed algorithm in the field of quantum machine learning. Quantum machine learning is a nascent field, and it is not clear what advantages of quantum exist over machine learning performed on classical computers. This is the most fundamental and still unanswered question in quantum machine learning. Our proposed algorithm can handle big data by distribution  and can converge quickly without getting into the Barren Plateaus problem which is peculiar to quantum machine learning. Our algorithm might be suitable to discover the superiority of quantum machine learning at present.
