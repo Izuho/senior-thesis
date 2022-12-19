@@ -1,0 +1,17 @@
+$$\begin{aligned}
+\frac{\partial }{\partial x_k}\bm{x}^\top A\bm{x}&=\frac{\partial }{\partial x_k}\sum_{i}x_i(A\bm{x})_i\\
+&=\frac{\partial }{\partial x_k}\sum_{i}x_i\sum_{j}A_{ij}x_{j}\\
+&=\frac{\partial }{\partial x_k}\sum_{i}\sum_{j}A_{ij}x_{i}x_{j}\\
+&=\sum_{i}\sum_{j}A_{ij}\frac{\partial }{\partial x_k}(x_{i}x_{j})\\
+&=\sum_{i}\sum_{j}A_{ij}(\delta_{jk}x_{i}+\delta_{ik}x_{j})\\
+&=\sum_{i}A_{ik}x_{i}+\sum_{j}A_{kj}x_{j}\\
+&=(A^\top\bm{x})_{k}+(A\bm{x})_{k}\\
+&=\left((A+A^\top)\bm{x}\right)_{k}
+\end{aligned}$$
+Therefore, 
+$$\frac{\partial }{\partial \bm{x}}\bm{x}^\top A\bm{x}=(A+A^\top)\bm{x}$$
+Here, 
+$$\delta_{ij}=\begin{cases}
+1 & \rm{if}\ i=j\\
+0 & \rm{otherwise}\\
+\end{cases}$$
