@@ -1,0 +1,25 @@
+\subsubsection{Theorem}
+When the matrix $G=\sum_{i=1}^Ny_iG_i$ has eigenvalues $\lambda_1 \leq \lambda_2 \leq \lambda_3$ (corresponding
+eigenvectors as $n_1, n_2, n_3$, $\|n_1\|= \|n_2\| = \|n_3\| = 1$), then the followings holds.
+$$\argmax_{\|n\|=1} n^\top Gn = n_3$$
+$$\max_{\|n\|=1} n^\top Gn = \lambda_3$$
+\subsubsection{Proof}
+We define the function $f$ and $\hat{\bm{n}}$:
+$$f(n,\tau)=n^\top Gn-\tau(\|n\|^2-1)$$
+$$\hat{n} = \argmax_{\|n\|=1} n^\top Gn$$
+
+By the method of Lagrange multipliers, at the point $\hat{n}$, there exists 
+$\hat{\tau}$ that satisfies the following.
+$$\frac{\partial f}{\partial n}(\hat{n}, \hat{\tau} ) = 0$$
+By solving these equations, we get
+$$2G \hat{n} = \hat{\tau} \hat{n}$$
+Here we use the formula $\frac{\partial }{\partial \bm{x}}\bm{x}^\top A\bm{x}=(A+A^\top)\bm{x}$ (see \ref{chap:appendix}).
+
+\par Therefore, $\hat{n}$ is one of the eigenvectors of $G$, $n_1, n_2, n_3$.
+Since 
+$$\begin{aligned}
+n_k^\top Gn_k&=\lambda_kn_k^\top n_k\\
+&=\lambda_k\|n_k\|^2_2\\
+&=\lambda_k
+\end{aligned}$$
+holds, from the condtion $\lambda_1\leq\lambda_2\leq\lambda_3$  directory follows $\hat{n}=n_3$.

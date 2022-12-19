@@ -1,0 +1,34 @@
+\section{Algorithm}
+\par From the discussion above, when there is one fraxis gate in the circuit, we know how to parallelize and optimize the parameters in that gate. However, there are multiple fraxis gates in the circuit and it is difficult to optimize all of them perfectly. Therefore, we propose to use a coordinate descent algorithm in order to approximately optimize this circuit when there are multiple fraxis gates. In the coordinate descent method, each fraxis gate is focused on in turn, and it is repeated to fix the parameters of the remaining non-focused gates and optimize only the parameters of the focused gate as described as mentioned in previous sections.
+
+\par The overall optimization algorithm is shown below:
+
+\begin{figure}[htb]
+\begin{algorithm}[H]
+\label{alg:algdis}
+  \begin{algorithmic}[1]
+    \caption{Circuit optimization for classification with free-axis selection}
+        \Require $M$ local quantum circuits for classification, Number of fraxis gates L, central server, initialized parameters $\{\bm{n_i}\}_{i=1,2,\cdots,L}$ (satisfies $\|\bm{n_i}\|=1$), data and label $\{(\bm{x_{i}}, y_i)\}_{i = 1, 2, \cdots, N}$, and \# repetitions $T$
+        \Ensure optimized parameters of $\{\bm{n_i}\}_{i=1,2,\cdots,L}$
+        \State Divides the data and labels equally for $M$ local nodes
+        \For{$t$ in $t=1,2,\cdots,T$}
+            \For{$d$ in $d=1,2,\cdots,L$}
+                \State $G \longleftarrow \bm{0}$
+                \For{$m$ in $m=1,2,\cdots,M$ \textbf{in parallel}}
+                    \State $G^{(m)} \longleftarrow \bm{0}$
+                        \For{$i$ in $i=1,2,\cdots, \frac{N}{M}$}
+                            \State Computes $G_i$
+                            \State $G^{(m)} \longleftarrow G^{(m)}+ y_iG_i$ 
+                        \EndFor
+                    \State $G\longleftarrow G+G^{(m)}$ 
+                \EndFor
+                \State Computes the eigenvector $\bm{\hat{n_d}}$ of the maximum eigenvalue of $G$
+                \State $\bm{n_d} \longleftarrow \bm{\hat{n_d}}$
+            \EndFor
+        \EndFor
+        \State \Return $\{\bm{n_i}\}_{i=1,2,\cdots,L}$
+  \end{algorithmic}
+  \end{algorithm}
+\end{figure}
+
+Looking at the algorithm above, it is clear that the order of execution time is $O(\frac{NLT}{M})$, where $N$ is the data size, $L$ is the number of fraxis gates, $T$ is the number of times to update all fraxis gates and $M$ is the number of quantum local nodes, which means the degree of parallelization. It is shown that the execution time can be reduced in inverse proportion to $M$ by $M$-parallelism.
