@@ -36,7 +36,7 @@ def parallel_train(rank, n_qubits, layer_size, world_size, num_train, num_test, 
     print('I am ', rank)
     test_label, train_label, test_feat, train_feat = data_loader(num_train, num_test)
     train_label, train_feat, test_label, test_feat = cut_data(train_label, train_feat, test_label, test_feat, rank, world_size)
-    model = FraxClassify(n_qubits, layer_size, world_size)
+    model = FraxClassify(n_qubits, layer_size, world_size, num_train, num_test)
     for i in range(update_iter):
         st = time.time()
         model.fit_and_eval(train_feat,train_label,test_feat,test_label)

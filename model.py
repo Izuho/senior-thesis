@@ -6,11 +6,13 @@ from qiskit.circuit import QuantumCircuit, ClassicalRegister
 from qiskit.primitives import Sampler
 
 class FraxClassify():
-    def __init__(self, n_qubits, layer_size, world_size):
+    def __init__(self, n_qubits, layer_size, world_size, train_size, test_size):
         self.n_qubits = n_qubits
         self.layer_size = layer_size
         self.world_size = world_size    
         self.params = np.zeros((layer_size, n_qubits, 2))
+        self.train_size = train_size
+        self.test_size = test_size
         
     def fit_and_eval(self, X,y,X2,y2):
         sampler = Sampler()
@@ -91,27 +93,32 @@ class FraxClassify():
                 group = dist.new_group(range(self.world_size))
                 dist.all_reduce(R, op=dist.ReduceOp.SUM, group=group)
                 R = R.to('cpu').detach().numpy().copy()
-                R = np.where(R*R<1e-8, 0, R)
+                
+                # Decrease the difference in behavior
+                #R = np.where(R*R<1e-8, 0, R) 
+                R /= self.train_size
+                
+                
                 eigenvalues, eigenvectors = np.linalg.eigh(R)
                 self.params[a, b] = eigenvectors[0:2, np.argmax(eigenvalues.real)]
                 if dist.get_rank(group) == 0: print(np.max(eigenvalues))
 
-                acc_and_score = self.eval(X,y,sampler)
+                acc_and_score = self.eval(X,y,sampler, self.train_size)
                 dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
                 
                 if abs(np.max(eigenvalues)-acc_and_score[1])>1e-4:
                     self.params[a,b,:] *= -1
-                    acc_and_score = self.eval(X,y,sampler)
+                    acc_and_score = self.eval(X,y,sampler, self.train_size)
                     dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
                 if dist.get_rank(group) == 0: print('ACC_train: ',acc_and_score[0],'\nSCORE_train: ',acc_and_score[1])
                 
-                acc_and_score = self.eval(X2,y2,sampler)
+                acc_and_score = self.eval(X2,y2,sampler, self.test_size)
                 dist.all_reduce(acc_and_score, op=dist.ReduceOp.SUM, group=group)
                 
                 if dist.get_rank(group) == 0: print('ACC_test: ',acc_and_score[0],'\nSCORE_test: ',acc_and_score[1])
         if dist.get_rank(group) == 0: print(self.params)
         
-    def eval(self, X, y, sampler):
+    def eval(self, X, y, sampler, X_size):
         acc_and_score = torch.zeros(2)
         for a in range(y.shape[0]):
             qc = QuantumCircuit(self.n_qubits)
@@ -144,4 +151,5 @@ class FraxClassify():
                         
             acc_and_score[0] += np.sum(np.where(y[a]*Zexp>0,1,0))
             acc_and_score[1] += np.sum(y[a]*Zexp)*2
+        acc_and_score[1] /= X_size
         return acc_and_score
