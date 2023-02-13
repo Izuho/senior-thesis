@@ -9,7 +9,7 @@ If you want to implement this code, change the below code for your access.
 &emsp;&emsp;instance='ibm-q-utokyo/internal/cs-slecture8',<br>
 )
 
-You can change the experimental setting by the following code in *main.ipynb*.
+You can change the experimental settings by the following code in *main.ipynb*.
 
 > Q = 2 # qubit<br>
 L = 2 # fraxis layer<br>
