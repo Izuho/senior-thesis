@@ -7,11 +7,11 @@ from qiskit.compiler import transpile
 
 
 class FraxClassify():
-    def __init__(self, n_qubits, layer_size, world_size, train_size, test_size, backend):
+    def __init__(self, n_qubits, layer_size, world_size, train_size, test_size, backend, params):
         self.n_qubits = n_qubits
         self.layer_size = layer_size
-        self.world_size = world_size    
-        self.params = np.zeros((layer_size, n_qubits, 3)) + np.array([0,0,1])
+        self.world_size = world_size
+        self.params = params
         self.train_size = train_size
         self.test_size = test_size
         self.backend = backend
@@ -102,7 +102,7 @@ class FraxClassify():
                 R[2,1] = R[1,2]
 
                 # Decrease the difference in behavior
-                R = np.where(R*R<1e-8, 0, R) 
+                #R = np.where(R*R<1e-8, 0, R) 
                 #R /= self.train_size
 
 
@@ -117,7 +117,8 @@ class FraxClassify():
                 acc_and_score = self.eval(X2, y2)
                     
                 print('ACC_test: ',acc_and_score[0],'\nSCORE_test: ',acc_and_score[1])
-        print(self.params)
+                print(self.params)
+        #print(self.params)
         
     def eval(self, X, y):
         sampler = Sampler()
