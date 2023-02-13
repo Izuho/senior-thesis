@@ -1,7 +1,6 @@
 from qiskit.circuit import QuantumCircuit
 import numpy as np
 
-# When nz=None, nz = np.sqrt(1-nx**2.-ny**2.)
 def fraxis_gate(nx, ny, nz=None):
     nx, ny, nz = _validate(nx, ny, nz)
     theta = 2*(np.arccos(nz))
