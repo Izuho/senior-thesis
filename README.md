@@ -1,6 +1,6 @@
 # senior-thesis
 
-This code is for IBM Quantum devices. 
+This code is for IBM Quantum devices. You implement this code on *IBM Quantum Lab*.
 
 If you want to implement this code, change the below code for your access.
 
